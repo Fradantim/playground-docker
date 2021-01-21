@@ -1,0 +1,65 @@
+# docker-compose specification version
+version: "3.8"
+
+# services will be the containers
+services: 
+  mongodb:
+    image: "mongo"
+    volumes:
+      - data:/data/db
+    # environment:
+      # MONGO_INITDB_ROOT_USERNAME: "max"
+      # MONGO_INITDB_ROOT_PASSWORD: "secret"
+      # - MONGO_INITDB_ROOT_USERNAME=max works the same way, this works as a single value, above are key - value
+    env_file:
+      - ./env/mongo.env
+    # networks:
+    #   - myNet
+  backend:
+    # image: "goals-node"
+    # docker can use a Dockerfile to create an image
+    build: ./backend
+    # Longer alternative with extra args
+    # build: 
+    #   context: ./backend
+    #   dockerfile: Dockerfile # Optional if it's called "Dockerfile"
+    #   args:
+    #     some-arg:1
+    ports:
+      - "80:80"
+    volumes:
+      # named volume
+      - logs:/app/logs
+      # Bind mount in relative path
+      - ./backend:/app
+      # anonymous volume
+      - /app/node_modules
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: max
+    #   MONGO_INITDB_ROOT_PASSWORD: secret
+    env_file:
+      - ./env/backend.env
+    depends_on:
+      # only when these started ok, "backend" will be started
+      - mongodb
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      # code changes are taken into consideration
+      - ./frontend/src:/app/src
+    # -it equivalient part 1 
+    stdin_open: true
+    # -it equivalient part 2
+    tty: true
+    depends_on:
+      - backend
+
+volumes:
+  data:
+  logs:
+
+# By default containers will be removed on stop
+# By default these containers will belong to the same network
+

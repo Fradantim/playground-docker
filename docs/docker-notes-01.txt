@@ -1,0 +1,150 @@
+
+- - - - - - - - - - - - - - - - - -
+
+# Build
+# Dockerfile file exists
+> docker build .
+(...)
+Successfully built 7505e359b55b
+
+docker run -p3000:3000 7505e359b55b
+# console locks on that process, go to http://localhost:3000/
+
+# on another console
+> docker ps
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS                    NAMES
+b5b664631da9   7505e359b55b   "docker-entrypoint.s…"   49 seconds ago   Up 47 seconds   0.0.0.0:3000->3000/tcp   crazy_hofstadter
+
+> docker stop crazy_hofstadter
+
+
+- - - - - - - - - - - - - - - - - -
+
+# create a container with the 'node' image from dockerhub
+> docker run node
+
+# list created container
+> docker ps -a
+CONTAINER ID   IMAGE          COMMAND                  CREATED              STATUS                          PORTS     NAMES
+d023ffe017e1   node           "docker-entrypoint.s…"   About a minute ago   Exited (0) About a minute ago             stoic_cray
+
+# The created container already exited
+
+# Create a container interactively
+> docker run -it node
+
+- - - - - - - - - - - - - - - - - -
+
+# Dockerfile
+FROM (base-image):(version)
+
+# Where the commands will be executed inside the image
+WORKDIR (path inside the image)
+
+# Including files
+COPY (PATH OUTSIDE THE IMAGE, where the real files exists) (destination inside de image)
+
+# run specific command from inside the IMAGE TO SET THE IMAGE (Before execution)
+RUN (command)
+
+# Expose port to host machine
+EXPOSE (port)
+
+# Execute when the container is started
+# SHOULD ALWAYS BE THE LAST INSTRUCTION
+CMD [ "command", "arg1", (...), "argN" ]
+
+- - - - - - - - - - - - - - - - - -
+
+# PORT FORWARDING
+> docker run -p (local machine port):(image exposed port) 2ca6c2f824a
+
+- - - - - - - - - - - - - - - - - -
+
+# Better (node) example Dockerfile
+
+FROM node:14
+
+WORKDIR /app
+
+# The second dot is actually /app (WORKDIR)
+# COPY . .
+# Both of these instructions work equally
+# COPY . /app
+
+COPY package.json /app
+
+RUN npm install
+
+# This es where most of our changes will exists,
+# this way the previous instructions will keep
+# using the same layers, and from here onward
+# only this layer keeps evolving
+COPY . /app
+
+EXPOSE 80
+
+CMD [ "node", "server.js" ]
+
+- - -
+
+> docker build .
+Sending build context to Docker daemon   16.9kB
+Step 1/7 : FROM node:14
+ ---> 72aaced1868f
+Step 2/7 : WORKDIR /app
+ ---> Using cache <--- <--- <---
+ ---> 0ed5a91121c7
+Step 3/7 : COPY package.json /app
+ ---> Using cache <--- <--- <---
+ ---> 06d968e631b6
+Step 4/7 : RUN npm install
+ ---> Using cache <--- <--- <---
+ ---> 468b205abdff
+Step 5/7 : COPY . /app
+ ---> 0a1e1d1493a5
+Step 6/7 : EXPOSE 80
+ ---> Running in de559dbb9329
+Removing intermediate container de559dbb9329
+ ---> 5c950eb1114e
+Step 7/7 : CMD [ "node", "server.js" ]
+ ---> Running in 2df708f76984
+Removing intermediate container 2df708f76984
+ ---> 08991f9e8f78
+Successfully built 08991f9e8f78
+
+- - - - - - - - - - - - - - - - - -
+
+# start a NEW container
+# here we specify port and volume binding
+> docker run IMAGE_ID/IMAGE_NAME
+
+# start an EXISTING container
+> docker start CONTAINER_ID/CONTAINER_NAME
+
+- - - - - - - - - - - - - - - - - -
+
+# attatched vs dettatched
+
+# this run mode is "attatched", we will recieve
+# the console output in the host console
+> docker run IMAGE_ID/IMAGE_NAME
+
+# this run mode is "dettatched", the created CONTAINER_ID will be printed
+> docker run -d IMAGE_ID/IMAGE_NAME
+
+# attatch to a running container
+> docker attatch CONTAINER_ID/CONTAINER_NAME
+
+# start an EXISTING container and attatch to it
+> docker start -a CONTAINER_ID/CONTAINER_NAME
+
+- - - - - - - - - - - - - - - - - -
+
+# like a tail command for the container console output
+> docker logs CONTAINER_ID/CONTAINER_NAME
+
+# like a tail -f command for the container console output
+> docker logs -f CONTAINER_ID/CONTAINER_NAME
+
+- - - - - - - - - - - - - - - - - -
